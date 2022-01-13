@@ -11,15 +11,57 @@ with open(".env") as f:
 bot = telebot.TeleBot(TOKEN)
 some_id = "@CompanyMentions"
 
+old_links = set()
+new_links = set()
+links_for_analyze = set()
+companies = ["Лукойл", "Lukoil" "X5 Retail Group", "Магнит", "Magnit", "Magnet", "Норникель", "Nornickel",
+             "Сургутнефтегаз", "Surgutneftegas", "Татнефть", "TATNEFT", "Yandex", "Яндекс", "Новатэк",
+             "NOVATEK", "Evraz", "Газпром", "Gazprom " "Apple", "Google", "Coca-Cola", "Microsoft",
+             "Samsung", "Amazon", "McDonald's", "Facebook", "NiKe", "IKEA", "Tesla"]
+
 
 def schedule_checker():
     while True:
         schedule.run_pending()
         sleep(1)
 
-def function_to_run():
-    return bot.send_message(some_id, "Hello world.")
+def finding_links_for_searching_names():
+    global old_links
+    global new_links
+    global companies
+    global links_for_analyze
+
+    url = 'https://meduza.io/'  # url страницы
+    old_links = new_links.copy()
+
+    tries = 10000
+    for attempt in range(tries):
+        try:
+            page = requests.get(url)
+        except KeyError as e:
+            sleep(2)
+            continue
+        break
+    else:
+        sleep(3000)
+
+    soup = BeautifulSoup(page.text, "html.parser")
+    all_news = soup.findAll('a', class_='Link-root Link-isInBlockTitle')
+
+    for i in range(len(all_news)):
+        link = "meduza.io"
+        curr_str = str(all_news[i])
+        k = curr_str.find("href=")
+        k += 6
+        while str(all_news[i])[k] != '"':
+            link += str(all_news[i])[k]
+            k += 1
+        new_links.add(link)
+    diff = set(new_links - old_links)
+
+
+    # gathered all the new_links to serach for company names
 
 if __name__ == "__main__":
-    schedule.every().day.at("18:00").do(function_to_run)
+    schedule.every().day.at("18:00").do(finding_links_for_searching_names)
     Thread(target=schedule_checker).start()
