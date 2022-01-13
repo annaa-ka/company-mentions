@@ -3,7 +3,9 @@ import telebot
 from threading import Thread
 from time import sleep
 
-TOKEN = None
+import requests
+from bs4 import BeautifulSoup
+
 
 with open(".env") as f:
     TOKEN = f.read().strip()
@@ -24,6 +26,7 @@ def schedule_checker():
     while True:
         schedule.run_pending()
         sleep(1)
+
 
 def finding_links_for_searching_names():
     global old_links
@@ -61,7 +64,43 @@ def finding_links_for_searching_names():
 
 
     # gathered all the new_links to serach for company names
+    links_for_analyze = set()
+
+    for link in diff:
+        url = 'https://' + link
+        tries = 10000
+        for attempt in range(tries):
+            try:
+                page = requests.get(url)
+            except KeyError as e:
+                sleep(2)
+                continue
+            break
+        else:
+            sleep(3000)
+
+        soup = BeautifulSoup(page.text, "html.parser")
+        block_with_the_article = soup.findAll('div', class_='GeneralMaterial-article')
+        for company in companies:
+            text = str(block_with_the_article)
+            p1 = text.find("<figcaption>")
+            while p1 != -1:
+                p2 = text.find("</figcaption>", p1)
+                text = text[0: p1:] + text[p2 + len("</figcaption>")::]
+                p1 = text.find("<figcaption>")
+            pos_in_text = text.find(company)
+            if pos_in_text == -1:
+                continue
+            else:
+                links_for_analyze.add(link)
+                bot.send_message(some_id, company + " was mentioned here\n" + url)
+
+    # gathered all the links for analyse
+
+    return bot.send_message(some_id, 'На сегодня всё!')
+
 
 if __name__ == "__main__":
-    schedule.every().day.at("18:00").do(finding_links_for_searching_names)
+    finding_links_for_searching_names()
+    schedule.every().day.at("18:14").do(finding_links_for_searching_names)
     Thread(target=schedule_checker).start()
