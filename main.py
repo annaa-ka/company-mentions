@@ -1,7 +1,7 @@
 import schedule
 import telebot
-from threading import Thread
 from time import sleep
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -22,10 +22,8 @@ companies = ["Лукойл", "Lukoil" "X5 Retail Group", "Магнит", "Magnit
              "Samsung", "Amazon", "McDonald's", "Facebook", "NiKe", "IKEA", "Tesla"]
 
 
-def schedule_checker():
-    while True:
-        schedule.run_pending()
-        sleep(1)
+# def text_analyze(links):
+#     # code for getting the text for work
 
 
 def finding_links_for_searching_names():
@@ -62,6 +60,10 @@ def finding_links_for_searching_names():
         new_links.add(link)
     diff = set(new_links - old_links)
 
+    if len(diff) == 0:
+        return bot.send_message(some_id, 'За сутки ничего не случилось!')
+
+
 
     # gathered all the new_links to serach for company names
     links_for_analyze = set()
@@ -92,15 +94,20 @@ def finding_links_for_searching_names():
             if pos_in_text == -1:
                 continue
             else:
-                links_for_analyze.add(link)
+                links_for_analyze.add((link, company))
                 bot.send_message(some_id, company + " was mentioned here\n" + url)
 
     # gathered all the links for analyse
+
+    # text_analyze(links_for_analyze)
 
     return bot.send_message(some_id, 'На сегодня всё!')
 
 
 if __name__ == "__main__":
-    finding_links_for_searching_names()
-    schedule.every().day.at("18:14").do(finding_links_for_searching_names)
-    Thread(target=schedule_checker).start()
+    schedule.every().day.at("18:49").do(finding_links_for_searching_names)
+    schedule.every().day.at("18:48").do(finding_links_for_searching_names)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
