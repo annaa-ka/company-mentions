@@ -7,8 +7,8 @@ from nltk.corpus import stopwords
 import re
 import requests
 from bs4 import BeautifulSoup
-from nltk.corpus import stopwords
 from nltk import word_tokenize
+from threading import Thread
 
 def ru_token(string):
     """russian tokenize based on nltk.word_tokenize. only russian letter remaind."""
@@ -46,8 +46,8 @@ def NLP_analyze(text):
     return predicted[0]
 
 
-def articles_processing(list_of_links):
-    for pair in list_of_links:
+def articles_processing(pair):
+
         text, company, url = pair
 
         split_text = re.split('[?.!]', text)
@@ -91,6 +91,9 @@ def articles_processing(list_of_links):
         message = company + " was mentioned here\n" + url + "\n\n" + "Message is " + mark
         bot.send_message(some_id, message)
 
+
+
+
 def finding_links_for_searching_names():
     global old_links
     global new_links
@@ -100,7 +103,7 @@ def finding_links_for_searching_names():
     url = 'https://meduza.io/'  # url страницы
     old_links = new_links.copy()
 
-    tries = 10000
+    tries = 10
     for attempt in range(tries):
         try:
             page = requests.get(url)
@@ -128,14 +131,14 @@ def finding_links_for_searching_names():
     if len(diff) == 0:
         return bot.send_message(some_id, 'За сутки ничего не случилось!')
 
-
+    print("hello1")
 
     # gathered all the new_links to serach for company names
     links_for_analyze = set()
 
     for link in diff:
         url = 'https://' + link   #подключаемся к сайту
-        tries = 10000
+        tries = 10
         for attempt in range(tries):
             try:
                 page = requests.get(url)
@@ -171,14 +174,20 @@ def finding_links_for_searching_names():
                 continue
             else:
                 links_for_analyze.add((article, company, url))
-    articles_processing(links_for_analyze)
+    print("hello2")
+    for pair in links_for_analyze:
+        th = Thread(target=articles_processing, args=(pair, ))
+        # print("works")
+        th.start()
+
+    # articles_processing(links_for_analyze)
     return
 
 
 if __name__ == "__main__":
     # bot.send_message(some_id, "HI")
     finding_links_for_searching_names()
-    schedule.every().day.at("17:30").do(finding_links_for_searching_names)
+    #schedule.every().day.at("22:55").do(finding_links_for_searching_names)
     while True:
         schedule.run_pending()
         time.sleep(1)
