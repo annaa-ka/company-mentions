@@ -8,7 +8,9 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
-from threading import Thread
+from threading import Thread, Lock
+
+mutex = Lock()
 
 def ru_token(string):
     """russian tokenize based on nltk.word_tokenize. only russian letter remaind."""
@@ -89,7 +91,10 @@ def articles_processing(pair):
 
         mark = NLP_analyze(new_text)
         message = company + " was mentioned here\n" + url + "\n\n" + "Message is " + mark
+        mutex.acquire()
         bot.send_message(some_id, message)
+        mutex.release()
+
 
 
 
