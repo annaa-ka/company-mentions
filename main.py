@@ -1,18 +1,21 @@
 import time
 import schedule
 import telebot
+import nltk
 from time import sleep
 import re
 import requests
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
-from threading import Thread, Lock
 import warnings
 import dateparser
 import datetime
 import pickle
-
+nltk.download('punkt')
+from threading import Thread, Lock
 mutex = Lock()
+
+
 
 def ru_token(string):
     return [i for i in word_tokenize(string) if re.match(r'[\u0400-\u04ffа́]+$', i)]
@@ -130,7 +133,6 @@ def finding_links_for_searching_names():
         # The file is created, but empty so write new database to it.
 
     for i in range(len(all_news)):
-        print(i)
         link = "meduza.io"
         curr_str = str(all_news[i])
         k = curr_str.find("href=")
@@ -229,8 +231,7 @@ def finding_links_for_searching_names():
 
 if __name__ == "__main__":
     finding_links_for_searching_names()
-    # bot.send_message(some_id, 'З')
-    schedule.every().day.at("16:32").do(finding_links_for_searching_names)
+    schedule.every().day.at("16:30").do(finding_links_for_searching_names)
     while True:
         schedule.run_pending()
         time.sleep(1)
