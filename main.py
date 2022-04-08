@@ -1,23 +1,28 @@
+"""Importing libraries"""
 import time
+from time import sleep
+import re
+import warnings
+import pickle
+import datetime
+from threading import Thread, Lock
 import schedule
 import telebot
 import nltk
-from time import sleep
-import re
 import requests
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
-import warnings
 import dateparser
-import datetime
-import pickle
 nltk.download('punkt')
-from threading import Thread, Lock
 mutex = Lock()
 
 
+# pylint: disable=too-many-branches, unspecified-encoding
+# pylint: disable=too-many-locals, too-many-statements
+# pylint: disable=(consider-using-with, too-many-statements
 
 def ru_token(string):
+    """russian tokenize based on nltk.word_tokenize. only russian letter remaind."""
     return [i for i in word_tokenize(string) if re.match(r'[\u0400-\u04ffа́]+$', i)]
 
 
@@ -27,17 +32,20 @@ with open(".env") as f:
 f.close()
 
 bot = telebot.TeleBot(TOKEN)
-some_id = "@CompanyMentions"
+SOME_ID = "@CompanyMentions"
 
 
-companies = ["Лукойл", "Lukoil" "X5 Retail Group", "Магнит", "Magnit", "Magnet", "Норникель", "Nornickel",
-             "Сургутнефтегаз", "Surgutneftegas", "Татнефть", "TATNEFT", "Yandex", "Яндекс", "Новатэк",
-             "NOVATEK", "Evraz", "Газпром", "Gazprom " "Apple", "Google", "Coca-Cola", "Microsoft",
-             "Samsung", "Amazon", "McDonald's", "Facebook", "NiKe", "IKEA", "Tesla"]
+COMPANIES = ["Лукойл", "Lukoil", "X5 Retail Group", "Магнит", "Magnit", "Magnet",
+             "Норникель", "Nornickel", "Сургутнефтегаз", "Surgutneftegas",
+             "Татнефть", "TATNEFT", "Yandex", "Яндекс", "Новатэк",
+             "NOVATEK", "Evraz", "Газпром", "Gazprom ", "Apple", "Google",
+             "Coca-Cola", "Microsoft", "Samsung", "Amazon", "McDonald's",
+             "Facebook", "NiKe", "IKEA", "Tesla"]
 
 warnings.filterwarnings(
     "ignore",
-    message="The localize method is no longer necessary, as this time zone supports the fold attribute",
+    message="The localize method is no longer necessary, "
+            "as this time zone supports the fold attribute",
 )
 
 with open('NLP.pkl', 'rb') as f:
@@ -45,16 +53,18 @@ with open('NLP.pkl', 'rb') as f:
 f.close()
 
 
-def NLP_analyze(text):
-    X_test_tfidf = tfidf_transformer.transform([text.lower()])
-    X_test = X_test_tfidf
+def nlp_analyze(text):
+    """rating the text"""
+    x_test_tfidf = tfidf_transformer.transform([text.lower()])
+    x_test = x_test_tfidf
 
-    predicted = clf.predict(X_test)
+    predicted = clf.predict(x_test)
 
     return predicted[0]
 
 
 def articles_processing(pair):
+    """processing article with getting essential sentences with mentions"""
     text, company, url = pair
 
     split_text = re.split('[?.!]', text)
@@ -94,24 +104,25 @@ def articles_processing(pair):
         else:
             i += 1
 
-    mark = NLP_analyze(new_text)
+    mark = nlp_analyze(new_text)
     message = company + " was mentioned here\n" + url + "\n\n" + "Message is " + mark
     mutex.acquire()
-    bot.send_message(some_id, message)
+    bot.send_message(SOME_ID, message)
     mutex.release()
 
 
 def finding_links_for_searching_names():
-    global companies
+    """finding links with articles"""
+
     new_links = set()
 
     url = 'https://meduza.io/'  # url страницы
 
     tries = 10000
-    for attempt in range(tries):
+    for _ in range(tries):
         try:
             page = requests.get(url)
-        except KeyError as e:
+        except KeyError as _:
             sleep(2)
             continue
         break
@@ -123,8 +134,8 @@ def finding_links_for_searching_names():
     default_datetime = datetime.datetime(1111, 1, 1, 1, 1, 1)
 
     try:
-        with open('date.pkl', 'rb') as f:
-            last_date = pickle.load(f)
+        with open('date.pkl', 'rb') as file:
+            last_date = pickle.load(file)
     except IOError:
         last_date = default_datetime
         # The file cannot be opened, or does not exist.
@@ -132,44 +143,42 @@ def finding_links_for_searching_names():
         last_date = default_datetime
         # The file is created, but empty so write new database to it.
 
-    for i in range(len(all_news)):
+    for news in all_news:
         link = "meduza.io"
-        curr_str = str(all_news[i])
+        curr_str = str(news)
         k = curr_str.find("href=")
         k += 6
-        while str(all_news[i])[k] != '"':
-            link += str(all_news[i])[k]
+        while str(news)[k] != '"':
+            link += str(news)[k]
             k += 1
 
         url = 'https://' + link  # подключаемся к сайту
         tries = 10000
-        for attempt in range(tries):
+        for _ in range(tries):
             try:
                 page = requests.get(url)
-            except KeyError as e:
+            except KeyError as _:
                 sleep(2)
                 continue
             break
         else:
             sleep(3000)
         soup = BeautifulSoup(page.text, "html.parser")
-        t = [x.text.strip() for x in soup.find_all('time')]
-        s = t[0]
-        date_string = str(dateparser.parse(s))
+        time_el = [x.text.strip() for x in soup.find_all('time')]
+        first_elem = time_el[0]
+        date_string = str(dateparser.parse(first_elem))
         date_time_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
         if last_date == default_datetime:
             new_links.add((date_time_obj, link))
         else:
-            if date_time_obj <= last_date:
-                continue
-            else:
+            if date_time_obj > last_date:
                 new_links.add((date_time_obj, link))
 
     # gathered all the new_links to serach for company names
     print("Done")
     if len(new_links) == 0:
         print("Empty")
-        bot.send_message(some_id, 'За сутки ничего не случилось!')
+        bot.send_message(SOME_ID, 'За сутки ничего не случилось!')
         return
 
     links_for_analyze = set()
@@ -181,10 +190,10 @@ def finding_links_for_searching_names():
         last_date_time_obj = element[0]
         url = 'https://' + link  # подключаемся к сайту
         tries = 10000
-        for attempt in range(tries):
+        for _ in range(tries):
             try:
                 page = requests.get(url)
-            except KeyError as e:
+            except KeyError as _:
                 sleep(2)
                 continue
             break
@@ -194,29 +203,29 @@ def finding_links_for_searching_names():
         soup = BeautifulSoup(page.text, "html.parser")
 
         article = str()
-        for td in soup.find_all('p', class_={'SimpleBlock-module_p__Q3azD',
+        for blocks in soup.find_all('p', class_={'SimpleBlock-module_p__Q3azD',
                                              "SimpleBlock-module_context_p__33saY ",
-                                             "SimpleBlock-module_lead__35nXx  SimpleBlock-module_center__2rjif"}):
-            article += td.get_text()
+                        "SimpleBlock-module_lead__35nXx  SimpleBlock-module_center__2rjif"}):
+            article += blocks.get_text()
 
-        for td in soup.find_all('h3', class_={"SimpleBlock-module_h3__2Kv7Y  SimpleBlock-module_center__2rjif"}):
-            article += td.get_text()
+        for blocks in soup.find_all('h3',
+                    class_={"SimpleBlock-module_h3__2Kv7Y  SimpleBlock-module_center__2rjif"}):
+            article += blocks.get_text()
 
-        for td in soup.find_all('h4', class_={"SimpleBlock-module_h4__2TJO3  SimpleBlock-module_center__2rjif"}):
-            article += td.get_text()
+        for blocks in soup.find_all('h4',
+                    class_={"SimpleBlock-module_h4__2TJO3  SimpleBlock-module_center__2rjif"}):
+            article += blocks.get_text()
 
-        for td in soup.find_all('div', class_={"QuoteBlock-module_root__2GrcC"}):
-            article += td.get_text()
+        for blocks in soup.find_all('div', class_={"QuoteBlock-module_root__2GrcC"}):
+            article += blocks.get_text()
 
-        for td in soup.find_all('ul', class_={
-            "ListBlock-module_root__3Q3Ga  ListBlock-module_ul__2MRrS ListBlock-module_center__tdIwd"}):
-            article += td.get_text()
+        for blocks in soup.find_all('ul', class_={
+    "ListBlock-module_root__3Q3Ga  ListBlock-module_ul__2MRrS ListBlock-module_center__blocksIwd"}):
+            article += blocks.get_text()
 
-        for company in companies:
+        for company in COMPANIES:
             pos_in_text = article.find(company)
-            if pos_in_text == -1:
-                continue
-            else:
+            if pos_in_text != -1:
                 links_for_analyze.add((article, company, url))
 
     with open('date.pkl', 'wb') as file:
@@ -224,8 +233,8 @@ def finding_links_for_searching_names():
     file.close()
 
     for pair in links_for_analyze:
-        th = Thread(target=articles_processing, args=(pair,))
-        th.start()
+        thr = Thread(target=articles_processing, args=(pair,))
+        thr.start()
     return
 
 
