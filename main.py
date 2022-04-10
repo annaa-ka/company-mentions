@@ -17,7 +17,7 @@ nltk.download('punkt')
 mutex = Lock()
 
 
-# pylint: disable=too-many-branches, unspecified-encoding
+# flake8: disable=E501
 # pylint: disable=too-many-locals, too-many-statements
 # pylint: disable=(consider-using-with, too-many-statements
 
@@ -204,23 +204,26 @@ def finding_links_for_searching_names():
 
         article = str()
         for blocks in soup.find_all('p', class_={'SimpleBlock-module_p__Q3azD',
-                                             "SimpleBlock-module_context_p__33saY ",
-                        "SimpleBlock-module_lead__35nXx  SimpleBlock-module_center__2rjif"}):
+                                                 "SimpleBlock-module_context_p__33saY ",
+                                                 "SimpleBlock-module_lead__35nXx "
+                                                 " SimpleBlock-module_center__2rjif"}):
             article += blocks.get_text()
 
-        for blocks in soup.find_all('h3',
-                    class_={"SimpleBlock-module_h3__2Kv7Y  SimpleBlock-module_center__2rjif"}):
+        for blocks in soup.find_all('h3', class_={"SimpleBlock-module_h3__2Kv7Y  "
+                                                  "SimpleBlock-module_center__2rjif"}):
             article += blocks.get_text()
 
-        for blocks in soup.find_all('h4',
-                    class_={"SimpleBlock-module_h4__2TJO3  SimpleBlock-module_center__2rjif"}):
+        for blocks in soup.find_all('h4', class_={"SimpleBlock-module_h4__2TJO3  "
+                                                  "SimpleBlock-module_center__2rjif"}):
             article += blocks.get_text()
 
         for blocks in soup.find_all('div', class_={"QuoteBlock-module_root__2GrcC"}):
             article += blocks.get_text()
 
-        for blocks in soup.find_all('ul', class_={
-    "ListBlock-module_root__3Q3Ga  ListBlock-module_ul__2MRrS ListBlock-module_center__blocksIwd"}):
+        for blocks in soup.find_all('ul',
+                                    class_={"ListBlock-module_root__3Q3Ga  "
+                                            "ListBlock-module_ul__2MRrS "
+                                            "ListBlock-module_center__blocksIwd"}):
             article += blocks.get_text()
 
         for company in COMPANIES:
@@ -239,7 +242,7 @@ def finding_links_for_searching_names():
 
 
 if __name__ == "__main__":
-    schedule.every().day.at("17:30").do(finding_links_for_searching_names)
+    schedule.every().day.at("18:30").do(finding_links_for_searching_names)
     while True:
         schedule.run_pending()
         time.sleep(1)
