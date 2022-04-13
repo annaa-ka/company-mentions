@@ -13,6 +13,8 @@ import requests
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
 import dateparser
+
+
 nltk.download('punkt')
 mutex = Lock()
 
@@ -27,9 +29,11 @@ def ru_token(string):
 
 
 # bot section
-with open(".env") as f:
-    TOKEN = f.read().strip()
-f.close()
+# with open(".env") as f:
+#     TOKEN = f.read().strip()
+# f.close()
+
+TOKEN = "${TELEGRAM_BOT_TOKEN}"
 
 bot = telebot.TeleBot(TOKEN)
 SOME_ID = "@CompanyMentions"
@@ -242,7 +246,7 @@ def finding_links_for_searching_names():
 
 
 if __name__ == "__main__":
-    finding_links_for_searching_names()
+    schedule.every().day.at("11:30").do(finding_links_for_searching_names)
     schedule.every().day.at("18:30").do(finding_links_for_searching_names)
     while True:
         schedule.run_pending()
