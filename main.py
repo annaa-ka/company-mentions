@@ -242,6 +242,7 @@ def finding_links_for_searching_names():
 
 
 if __name__ == "__main__":
+    finding_links_for_searching_names()
     schedule.every().day.at("18:30").do(finding_links_for_searching_names)
     while True:
         schedule.run_pending()
