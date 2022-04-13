@@ -5,11 +5,17 @@ services:
     image: annieka/company-mentions
     labels:
       - "com.centurylinklabs.watchtower.scope=myscope"
+    environment:
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+    env_file:
+      - .env
 
   watchtower:
-    image: annieka/company-mentions
+    image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 10 --scope myscope
+    command: --interval 30
     labels:
       - "com.centurylinklabs.watchtower.scope=myscope"
+
+
