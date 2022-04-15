@@ -29,14 +29,12 @@ def ru_token(string):
 
 
 # bot section
-# with open(".env") as f:
-#     TOKEN = f.read().strip()
-# f.close()
-
-TOKEN = "${TELEGRAM_BOT_TOKEN}"
+with open(".env") as f:
+    TOKEN = f.read().strip()
+f.close()
 
 bot = telebot.TeleBot(TOKEN)
-SOME_ID = "@CompanyMentions"
+SOME_ID = "@comapny_mentions"
 
 
 COMPANIES = ["Лукойл", "Lukoil", "X5 Retail Group", "Магнит", "Magnit", "Magnet",
@@ -65,7 +63,6 @@ def nlp_analyze(text):
     predicted = clf.predict(x_test)
 
     return predicted[0]
-
 
 def articles_processing(pair):
     """processing article with getting essential sentences with mentions"""
@@ -179,9 +176,7 @@ def finding_links_for_searching_names():
                 new_links.add((date_time_obj, link))
 
     # gathered all the new_links to serach for company names
-    print("Done")
     if len(new_links) == 0:
-        print("Empty")
         bot.send_message(SOME_ID, 'За сутки ничего не случилось!')
         return
 
@@ -240,14 +235,14 @@ def finding_links_for_searching_names():
     file.close()
 
     for pair in links_for_analyze:
-        thr = Thread(target=articles_processing, args=(pair,))
-        thr.start()
-    return
+        articles_processing(pair)
 
 
-if __name__ == "__main__":
-    schedule.every().day.at("11:30").do(finding_links_for_searching_names)
-    schedule.every().day.at("18:30").do(finding_links_for_searching_names)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+
+
+schedule.every().day.at("18:59").do(finding_links_for_searching_names)
+schedule.every().day.at("19:05").do(finding_links_for_searching_names)
+schedule.every().day.at("19:11").do(finding_links_for_searching_names)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
