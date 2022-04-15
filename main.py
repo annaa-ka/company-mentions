@@ -5,7 +5,7 @@ import re
 import warnings
 import pickle
 import datetime
-from threading import Thread, Lock
+from threading import Lock
 import schedule
 import telebot
 import nltk
@@ -20,8 +20,7 @@ mutex = Lock()
 
 
 # flake8: disable=E501
-# pylint: disable=too-many-locals, too-many-statements
-# pylint: disable=(consider-using-with, too-many-statements
+
 
 def ru_token(string):
     """russian tokenize based on nltk.word_tokenize. only russian letter remaind."""
@@ -63,6 +62,7 @@ def nlp_analyze(text):
     predicted = clf.predict(x_test)
 
     return predicted[0]
+
 
 def articles_processing(pair):
     """processing article with getting essential sentences with mentions"""
@@ -236,8 +236,6 @@ def finding_links_for_searching_names():
 
     for pair in links_for_analyze:
         articles_processing(pair)
-
-
 
 
 schedule.every().day.at("18:59").do(finding_links_for_searching_names)
