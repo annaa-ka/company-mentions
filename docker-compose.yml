@@ -1,5 +1,12 @@
 version: '3'
 
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+
 services:
   company-mentions:
     image: annieka/company-mentions
