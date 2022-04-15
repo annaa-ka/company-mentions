@@ -61,6 +61,7 @@ def nlp_analyze(text):
 
     return predicted[0]
 
+
 def articles_processing(pair):
     """processing article with getting essential sentences with mentions"""
     text, company, url = pair
