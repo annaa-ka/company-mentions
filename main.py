@@ -5,8 +5,7 @@ import re
 import warnings
 import pickle
 import datetime
-from threading import Lock
-import schedule
+from threading import Thread, Lock
 import telebot
 import nltk
 import requests
@@ -17,7 +16,6 @@ import dateparser
 
 nltk.download('punkt')
 mutex = Lock()
-
 
 # flake8: disable=E501
 
@@ -62,7 +60,6 @@ def nlp_analyze(text):
     predicted = clf.predict(x_test)
 
     return predicted[0]
-
 
 def articles_processing(pair):
     """processing article with getting essential sentences with mentions"""
@@ -139,10 +136,8 @@ def finding_links_for_searching_names():
             last_date = pickle.load(file)
     except IOError:
         last_date = default_datetime
-        # The file cannot be opened, or does not exist.
     except EOFError:
         last_date = default_datetime
-        # The file is created, but empty so write new database to it.
 
     for news in all_news:
         link = "meduza.io"
@@ -153,7 +148,7 @@ def finding_links_for_searching_names():
             link += str(news)[k]
             k += 1
 
-        url = 'https://' + link  # подключаемся к сайту
+        url = 'https://' + link
         tries = 10000
         for _ in range(tries):
             try:
@@ -175,7 +170,7 @@ def finding_links_for_searching_names():
             if date_time_obj > last_date:
                 new_links.add((date_time_obj, link))
 
-    # gathered all the new_links to serach for company names
+    # gathered all the new_links to search for company names
     if len(new_links) == 0:
         bot.send_message(SOME_ID, 'За сутки ничего не случилось!')
         return
@@ -187,7 +182,7 @@ def finding_links_for_searching_names():
     for element in new_links:
         link = element[1]
         last_date_time_obj = element[0]
-        url = 'https://' + link  # подключаемся к сайту
+        url = 'https://' + link
         tries = 10000
         for _ in range(tries):
             try:
@@ -235,12 +230,12 @@ def finding_links_for_searching_names():
     file.close()
 
     for pair in links_for_analyze:
-        articles_processing(pair)
+        th = Thread(target=articles_processing, args=(pair,))
+        th.start()
+    return
 
 
-schedule.every().day.at("18:59").do(finding_links_for_searching_names)
-schedule.every().day.at("19:05").do(finding_links_for_searching_names)
-schedule.every().day.at("19:11").do(finding_links_for_searching_names)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+time_to_wait = 24 * 60 * 60
+while 1:
+    finding_links_for_searching_names()
+    time.sleep(time_to_wait)
