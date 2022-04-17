@@ -173,7 +173,7 @@ def finding_links_for_searching_names():
 
     # gathered all the new_links to search for company names
     if len(new_links) == 0:
-        bot.send_message(SOME_ID, 'За сутки ничего не случилось!')
+        bot.send_message(SOME_ID, 'We have not found any mentions.')
         return
 
     links_for_analyze = set()
@@ -236,7 +236,7 @@ def finding_links_for_searching_names():
     return
 
 
-time_to_wait = 24 * 60 * 60
+time_to_wait = 4 * 60 * 60
 while 1:
     finding_links_for_searching_names()
     time.sleep(time_to_wait)
