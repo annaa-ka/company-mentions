@@ -112,7 +112,7 @@ def articles_processing(pair):
 
 def finding_links_for_searching_names():
     """finding links with articles"""
-
+    bot.send_message(SOME_ID, 'Start searching!')
     new_links = set()
 
     url = 'https://meduza.io/'  # url страницы
