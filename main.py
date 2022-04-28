@@ -17,7 +17,7 @@ nltk.download('punkt')
 mutex = Lock()
 
 
-# flake8: disable=E501,E722
+# flake8: disable=E501
 
 
 def ru_token(string):
@@ -129,8 +129,6 @@ def finding_links_for_searching_names():
         else:
             break
 
-    bot.send_message(SOME_ID, 'I have connected to Meduza')
-
     soup = BeautifulSoup(page.text, "html.parser")
     all_news = soup.findAll('a', class_='Link-root Link-isInBlockTitle')
     default_datetime = datetime.datetime(1111, 1, 1, 1, 1, 1)
@@ -187,8 +185,6 @@ def finding_links_for_searching_names():
     if len(new_links) == 0:
         bot.send_message(SOME_ID, 'We have not found any mentions.')
         return
-
-    bot.send_message(SOME_ID, 'I have gathered links')
 
     links_for_analyze = set()
     new_links = sorted(new_links)
@@ -250,8 +246,6 @@ def finding_links_for_searching_names():
         pickle.dump(last_date_time_obj, file)
     file.close()
 
-    bot.send_message(SOME_ID, "Start analyze")
-    bot.send_message(SOME_ID, str(len(links_for_analyze)))
     for pair in links_for_analyze:
         sleep(10)
         articles_processing(pair)
