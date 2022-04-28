@@ -5,7 +5,7 @@ import re
 import warnings
 import pickle
 import datetime
-from threading import Thread, Lock
+from threading import Lock
 import telebot
 import nltk
 import requests
@@ -17,7 +17,7 @@ import dateparser
 nltk.download('punkt')
 mutex = Lock()
 
-# flake8: disable=E501
+# flake8: disable=E501,E722
 
 
 def ru_token(string):
@@ -103,11 +103,11 @@ def articles_processing(pair):
             i += 1
 
     mark = nlp_analyze(new_text)
-    
     message = company + " was mentioned here\n" + url + "\n\n" + "Message is " + mark
     mutex.acquire()
     bot.send_message(SOME_ID, message)
     mutex.release()
+
 
 def finding_links_for_searching_names():
     """finding links with articles"""
@@ -182,7 +182,6 @@ def finding_links_for_searching_names():
         else:
             if date_time_obj > last_date:
                 new_links.add((date_time_obj, link))
-     
 
    # gathered all the new_links to search for company names
 
