@@ -58,7 +58,6 @@ def nlp_analyze(text):
     x_test = x_test_tfidf
 
     predicted = clf.predict(x_test)
-
     return predicted[0]
 
 
@@ -104,11 +103,11 @@ def articles_processing(pair):
             i += 1
 
     mark = nlp_analyze(new_text)
+    
     message = company + " was mentioned here\n" + url + "\n\n" + "Message is " + mark
     mutex.acquire()
     bot.send_message(SOME_ID, message)
     mutex.release()
-
 
 def finding_links_for_searching_names():
     """finding links with articles"""
@@ -117,16 +116,21 @@ def finding_links_for_searching_names():
 
     url = 'https://meduza.io/'  # url страницы
 
-    tries = 10000
-    for _ in range(tries):
+    tries = 10
+    for tr in range(tries):
         try:
             page = requests.get(url)
-        except KeyError as _:
-            sleep(2)
-            continue
-        break
-    else:
-        sleep(3000)
+        except:
+            if tr == 10:
+                bot.send_message(SOME_ID, 'I did not manage to connect to Meduza')
+                sleep(100)
+                finding_links_for_searching_names()
+            else:
+                sleep(2)
+        else:
+            break
+
+    bot.send_message(SOME_ID, 'I have connected to Meduza')
 
     soup = BeautifulSoup(page.text, "html.parser")
     all_news = soup.findAll('a', class_='Link-root Link-isInBlockTitle')
@@ -141,6 +145,8 @@ def finding_links_for_searching_names():
         last_date = default_datetime
 
     for news in all_news:
+        flag = 0
+
         link = "meduza.io"
         curr_str = str(news)
         k = curr_str.find("href=")
@@ -150,16 +156,22 @@ def finding_links_for_searching_names():
             k += 1
 
         url = 'https://' + link
-        tries = 10000
-        for _ in range(tries):
+        tries = 10
+        for tr in range(tries):
             try:
                 page = requests.get(url)
-            except KeyError as _:
-                sleep(2)
-                continue
-            break
-        else:
-            sleep(3000)
+            except:
+                if tr == 10:
+                    bot.send_message(SOME_ID, 'I did not manage to connect to ' + url)
+                    flag = 1
+                else:
+                    sleep(2)
+            else:
+                break
+
+        if flag == 1:
+            continue
+
         soup = BeautifulSoup(page.text, "html.parser")
         time_el = [x.text.strip() for x in soup.find_all('time')]
         first_elem = time_el[0]
@@ -170,30 +182,40 @@ def finding_links_for_searching_names():
         else:
             if date_time_obj > last_date:
                 new_links.add((date_time_obj, link))
+     
 
-    # gathered all the new_links to search for company names
+   # gathered all the new_links to search for company names
+
     if len(new_links) == 0:
         bot.send_message(SOME_ID, 'We have not found any mentions.')
         return
+
+    bot.send_message(SOME_ID, 'I have gathered links')
 
     links_for_analyze = set()
     new_links = sorted(new_links)
     last_date_time_obj = default_datetime
 
     for element in new_links:
+        flag = 0
         link = element[1]
         last_date_time_obj = element[0]
         url = 'https://' + link
-        tries = 10000
-        for _ in range(tries):
+        tries = 10
+        for tr in range(tries):
             try:
                 page = requests.get(url)
-            except KeyError as _:
-                sleep(2)
-                continue
-            break
-        else:
-            sleep(3000)
+            except:
+                if tr == 10:
+                     bot.send_message(SOME_ID, 'I did not manage to connect to ' + url + " in text finding")
+                     flag = 1
+                else:
+                    sleep(2)
+            else:
+                break
+
+        if flag == 1:
+            continue
 
         soup = BeautifulSoup(page.text, "html.parser")
 
@@ -230,13 +252,15 @@ def finding_links_for_searching_names():
         pickle.dump(last_date_time_obj, file)
     file.close()
 
+    bot.send_message(SOME_ID, "Start analyze")
+    bot.send_message(SOME_ID, str(len(links_for_analyze)))
     for pair in links_for_analyze:
-        th = Thread(target=articles_processing, args=(pair,))
-        th.start()
+        sleep(10)
+        articles_processing(pair)
     return
 
 
-time_to_wait = 4 * 60 * 60
+time_to_wait = 2 * 60 * 60
 while 1:
     finding_links_for_searching_names()
     time.sleep(time_to_wait)
