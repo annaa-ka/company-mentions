@@ -13,9 +13,9 @@ from bs4 import BeautifulSoup
 from nltk import word_tokenize
 import dateparser
 
-
 nltk.download('punkt')
 mutex = Lock()
+
 
 # flake8: disable=E501,E722
 
@@ -32,7 +32,6 @@ f.close()
 
 bot = telebot.TeleBot(TOKEN)
 SOME_ID = "@comapny_mentions"
-
 
 COMPANIES = ["Лукойл", "Lukoil", "X5 Retail Group", "Магнит", "Magnit", "Magnet",
              "Норникель", "Nornickel", "Сургутнефтегаз", "Surgutneftegas",
@@ -120,7 +119,7 @@ def finding_links_for_searching_names():
     for tr in range(tries):
         try:
             page = requests.get(url)
-        except:
+        except Exception as exception:
             if tr == 10:
                 bot.send_message(SOME_ID, 'I did not manage to connect to Meduza')
                 sleep(100)
@@ -160,7 +159,7 @@ def finding_links_for_searching_names():
         for tr in range(tries):
             try:
                 page = requests.get(url)
-            except:
+            except Exception as exception:
                 if tr == 10:
                     bot.send_message(SOME_ID, 'I did not manage to connect to ' + url)
                     flag = 1
@@ -183,7 +182,7 @@ def finding_links_for_searching_names():
             if date_time_obj > last_date:
                 new_links.add((date_time_obj, link))
 
-   # gathered all the new_links to search for company names
+    # gathered all the new_links to search for company names
 
     if len(new_links) == 0:
         bot.send_message(SOME_ID, 'We have not found any mentions.')
@@ -204,10 +203,10 @@ def finding_links_for_searching_names():
         for tr in range(tries):
             try:
                 page = requests.get(url)
-            except:
+            except Exception as exception:
                 if tr == 10:
-                     bot.send_message(SOME_ID, 'I did not manage to connect to ' + url + " in text finding")
-                     flag = 1
+                    bot.send_message(SOME_ID, 'I did not manage to connect to ' + url + " in text finding")
+                    flag = 1
                 else:
                     sleep(2)
             else:
