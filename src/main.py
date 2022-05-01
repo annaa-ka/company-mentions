@@ -252,7 +252,7 @@ def finding_links_for_searching_names():
     return
 
 
-time_to_wait = 2 * 60 * 60
+time_to_wait = 0.5 * 60 * 60
 while 1:
     finding_links_for_searching_names()
     time.sleep(time_to_wait)
