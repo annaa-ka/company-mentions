@@ -26,7 +26,7 @@ def ru_token(string):
 
 
 # bot section
-with open(".env") as f:
+with open("./src/.env") as f:
     TOKEN = f.read().strip()
 f.close()
 
@@ -46,7 +46,7 @@ warnings.filterwarnings(
             "as this time zone supports the fold attribute",
 )
 
-with open('NLP.pkl', 'rb') as f:
+with open('./src/NLP.pkl', 'rb') as f:
     tfidf_transformer, clf = pickle.load(f)
 f.close()
 
@@ -134,7 +134,7 @@ def finding_links_for_searching_names():
     default_datetime = datetime.datetime(1111, 1, 1, 1, 1, 1)
 
     try:
-        with open('date.pkl', 'rb') as file:
+        with open('./src/date.pkl', 'rb') as file:
             last_date = pickle.load(file)
     except IOError:
         last_date = default_datetime
@@ -242,7 +242,7 @@ def finding_links_for_searching_names():
             if pos_in_text != -1:
                 links_for_analyze.add((article, company, url))
 
-    with open('date.pkl', 'wb') as file:
+    with open('./src/date.pkl', 'wb') as file:
         pickle.dump(last_date_time_obj, file)
     file.close()
 

@@ -14,8 +14,6 @@ services:
       - "com.centurylinklabs.watchtower.scope=myscope"
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
-    env_file:
-      - .env
 
   watchtower:
     image: containrrr/watchtower
