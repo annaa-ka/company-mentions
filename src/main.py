@@ -52,10 +52,7 @@ def upload_file(loadfile, savefile, replace=False):
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {YANDEX_TOKEN}'}
     res = requests.get(f'{URL}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
     with open(loadfile, 'rb') as f:
-        try:
-            requests.put(res['href'], files={'file':f})
-        except KeyError:
-           print("loh")
+        requests.put(res['href'], files={'file': f})
 
 
 def download_file(path, file_name):
