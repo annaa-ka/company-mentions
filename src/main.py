@@ -46,6 +46,7 @@ warnings.filterwarnings(
             "as this time zone supports the fold attribute",
 )
 
+
 def upload_file(loadfile, savefile, replace=False):
     URL = 'https://cloud-api.yandex.net/v1/disk/resources'
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {YANDEX_TOKEN}'}
@@ -59,7 +60,7 @@ def upload_file(loadfile, savefile, replace=False):
 
 def download_file(path, file_name):
     base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-    public_key = path #url on file for downloading
+    public_key = path
     final_url = base_url + urlencode(dict(public_key=public_key))
     response = requests.get(final_url)
     download_url = response.json()['href']
@@ -270,12 +271,10 @@ def finding_links_for_searching_names():
     if len(links_for_analyze) == 0:
         bot.send_message(SOME_ID, 'We have not found any mentions.')
 
-
     with open('./src/date.pkl', 'wb') as file:
         pickle.dump(last_date_time_obj, file)
     file.close()
     upload_file('./src/date.pkl', 'HSE_project/date.pkl', True)
-
 
     for pair in links_for_analyze:
         sleep(10)
