@@ -1,4 +1,5 @@
 """Importing libraries"""
+import os
 import time
 from time import sleep
 import re
@@ -11,6 +12,7 @@ import nltk
 import requests
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
+from urllib.parse import urlencode
 import dateparser
 
 nltk.download('punkt')
@@ -25,12 +27,10 @@ def ru_token(string):
     return [i for i in word_tokenize(string) if re.match(r'[\u0400-\u04ffа́]+$', i)]
 
 
-# bot section
-with open("./src/.env") as f:
-    TOKEN = f.read().strip()
-f.close()
+TELEGRAM_BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
+YANDEX_TOKEN = os.environ['YANDEX_TOKEN']
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 SOME_ID = "@comapny_mentions"
 
 COMPANIES = ["Лукойл", "Lukoil", "X5 Retail Group", "Магнит", "Magnit", "Magnet",
@@ -46,6 +46,30 @@ warnings.filterwarnings(
             "as this time zone supports the fold attribute",
 )
 
+def upload_file(loadfile, savefile, replace=False):
+    URL = 'https://cloud-api.yandex.net/v1/disk/resources'
+    headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {YANDEX_TOKEN}'}
+    res = requests.get(f'{URL}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
+    with open(loadfile, 'rb') as f:
+        try:
+            requests.put(res['href'], files={'file':f})
+        except KeyError:
+           print("loh")
+
+
+def download_file(path, file_name):
+    base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+    public_key = path #url on file for downloading
+    final_url = base_url + urlencode(dict(public_key=public_key))
+    response = requests.get(final_url)
+    download_url = response.json()['href']
+
+    download_response = requests.get(download_url)
+    with open('./src/' + file_name, 'wb') as f:
+        f.write(download_response.content)
+
+
+download_file("https://disk.yandex.ru/d/UtfYbeYZ7FORQQ", "NLP.pkl")
 with open('./src/NLP.pkl', 'rb') as f:
     tfidf_transformer, clf = pickle.load(f)
 f.close()
@@ -133,6 +157,7 @@ def finding_links_for_searching_names():
     all_news = soup.findAll('a', class_='Link-root Link-isInBlockTitle')
     default_datetime = datetime.datetime(1111, 1, 1, 1, 1, 1)
 
+    download_file("https://disk.yandex.ru/d/cwj_2bNX60GMzQ", "date.pkl")
     try:
         with open('./src/date.pkl', 'rb') as file:
             last_date = pickle.load(file)
@@ -242,9 +267,15 @@ def finding_links_for_searching_names():
             if pos_in_text != -1:
                 links_for_analyze.add((article, company, url))
 
+    if len(links_for_analyze) == 0:
+        bot.send_message(SOME_ID, 'We have not found any mentions.')
+
+
     with open('./src/date.pkl', 'wb') as file:
         pickle.dump(last_date_time_obj, file)
     file.close()
+    upload_file('./src/date.pkl', 'HSE_project/date.pkl', True)
+
 
     for pair in links_for_analyze:
         sleep(10)
@@ -252,7 +283,7 @@ def finding_links_for_searching_names():
     return
 
 
-time_to_wait = 0.5 * 60 * 60
+time_to_wait = 0.25 * 60 * 60
 while 1:
     finding_links_for_searching_names()
     time.sleep(time_to_wait)
