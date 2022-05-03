@@ -3,7 +3,6 @@ import os
 import time
 from time import sleep
 import re
-import warnings
 import pickle
 import datetime
 from threading import Lock
@@ -14,10 +13,13 @@ from bs4 import BeautifulSoup
 from nltk import word_tokenize
 from urllib.parse import urlencode
 import dateparser
+
 nltk.download('punkt')
 mutex = Lock()
 
+
 # flake8: disable=E501
+
 
 class TelegramBot:
     def __init__(self):
@@ -31,7 +33,6 @@ class TelegramBot:
         return self.id
 
 
-
 def ru_token(string):
     """russian tokenize based on nltk.word_tokenize. only russian letter remaind."""
     return [i for i in word_tokenize(string) if re.match(r'[\u0400-\u04ffа́]+$', i)]
@@ -41,11 +42,11 @@ class CompaniesForSearch:
 
     def __init__(self):
         self.companies = ["Лукойл", "Lukoil", "X5 Retail Group", "Магнит", "Magnit", "Magnet",
-             "Норникель", "Nornickel", "Сургутнефтегаз", "Surgutneftegas",
-             "Татнефть", "TATNEFT", "Yandex", "Яндекс", "Новатэк",
-             "NOVATEK", "Evraz", "Газпром", "Gazprom ", "Apple", "Google",
-             "Coca-Cola", "Microsoft", "Samsung", "Amazon", "McDonald's",
-             "Facebook", "Nike", "IKEA", "Tesla"]
+                          "Норникель", "Nornickel", "Сургутнефтегаз", "Surgutneftegas",
+                          "Татнефть", "TATNEFT", "Yandex", "Яндекс", "Новатэк",
+                          "NOVATEK", "Evraz", "Газпром", "Gazprom ", "Apple", "Google",
+                          "Coca-Cola", "Microsoft", "Samsung", "Amazon", "McDonald's",
+                          "Facebook", "Nike", "IKEA", "Tesla"]
 
     def get_names(self):
         return self.companies
@@ -58,11 +59,11 @@ class YandexDiskWork:
 
     def upload_file(self, loadfile, savefile, replace=False):
         url = 'https://cloud-api.yandex.net/v1/disk/resources'
-        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {self.yandex_token}'}
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json',
+                   'Authorization': f'OAuth {self.yandex_token}'}
         res = requests.get(f'{url}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
         with open(loadfile, 'rb') as f:
             requests.put(res['href'], files={'file': f})
-
 
     def download_file(self, path, file_name):
         base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
@@ -86,7 +87,7 @@ class TextAnalyzing:
 
     def nlp_analyze(self, text):
         """rating the text"""
-        x_test_tfidf =  self.tfidf_transformer.transform([text.lower()])
+        x_test_tfidf = self.tfidf_transformer.transform([text.lower()])
         x_test = x_test_tfidf
 
         predicted = self.clf.predict(x_test)
@@ -123,10 +124,10 @@ class TextProcess:
                         new_text += split_text[i - 1] + '.'
                     new_text += split_text[i] + '.'
                 if i + 2 < len(split_text):
-                        new_text += split_text[i + 1] + '.'
-                        new_text += split_text[i + 2] + '.'
+                    new_text += split_text[i + 1] + '.'
+                    new_text += split_text[i + 2] + '.'
                 elif i + 1 < len(split_text):
-                        new_text += split_text[i + 1] + '.'
+                    new_text += split_text[i + 1] + '.'
                 last_sentence = i + 2
                 i += 3
             else:
@@ -156,7 +157,8 @@ class MeduzaParser:
                 page = requests.get(url)
             except Exception:
                 if tr == 10:
-                    self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'I did not manage to connect to Meduza')
+                    self.bot_info.get_bot().send_message(self.bot_info.get_id(),
+                                                         'I did not manage to connect to Meduza')
                     sleep(100)
                     self.meduza_parsing()
                 else:
@@ -239,7 +241,7 @@ class MeduzaParser:
                 except Exception:
                     if tr == 10:
                         self.bot_info.get_bot().send_message(self.bot_info.get_id(),
-                                                        'I did not manage to connect to ' + url + " in text finding")
+                                                             'I did not manage to connect to ' + url + " in text finding")
                         flag = 1
                     else:
                         sleep(2)
@@ -276,7 +278,7 @@ class MeduzaParser:
                 article += blocks.get_text()
 
             names_of_companies = CompaniesForSearch().get_names()
-            for company in  names_of_companies:
+            for company in names_of_companies:
                 pos_in_text = article.find(company)
                 if pos_in_text != -1:
                     links_for_analyze.add((article, company, url))
@@ -312,7 +314,8 @@ class RbcParser:
                 page = requests.get(website_url)
             except Exception:
                 if tr == 10:
-                    self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'I did not manage to connect to rbc business')
+                    self.bot_info.get_bot().send_message(self.bot_info.get_id(),
+                                                         'I did not manage to connect to rbc business')
                     sleep(100)
                     self.rbc_parsing()
                 else:
