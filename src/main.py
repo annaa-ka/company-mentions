@@ -448,7 +448,7 @@ class RbcParser:
 
 
 bot_info = TelegramBot()
-time_to_wait = 0.25 * 60 * 60
+time_to_wait = 3 * 60 * 60
 while 1:
     MeduzaParser(bot_info).meduza_parsing()
     RbcParser(bot_info).rbc_parsing()
