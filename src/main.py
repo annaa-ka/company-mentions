@@ -5,7 +5,7 @@ from time import sleep
 import re
 import pickle
 import datetime
-from threading import Lock
+from threading import Thread, Lock
 import telebot
 import nltk
 import requests
@@ -222,7 +222,7 @@ class MeduzaParser:
         # gathered all the new_links to search for company names
 
         if len(new_links) == 0:
-            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found new articles.')
+            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found new articles on Meduza.')
             return
 
         links_for_analyze = set()
@@ -285,16 +285,21 @@ class MeduzaParser:
 
         if len(links_for_analyze) == 0:
             self.bot_info.get_bot().send_message(self.bot_info.get_id(),
-                                                 'We have not found any mentions.')
+                                                 'We have not found any mentions on Meduza.')
 
         with open('./src/date_meduza.pkl', 'wb') as file:
             pickle.dump(last_date_time_obj, file)
         file.close()
         YandexDiskWork().upload_file('./src/date_meduza.pkl', 'HSE_project/date_meduza.pkl', True)
 
+        threads_arr = list()
         for pair in links_for_analyze:
-            sleep(10)
-            TextProcess(self.bot_info).articles_processing(pair)
+            th = Thread(target=TextProcess(self.bot_info).articles_processing, args=(pair,))
+            threads_arr.append(th)
+            th.start()
+
+        for th in threads_arr:
+            th.join()
         return
 
 
@@ -379,7 +384,7 @@ class RbcParser:
         # gathered all the new_links to search for company names
 
         if len(new_links) == 0:
-            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found new articles.')
+            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found new articles on RBC.')
             return
 
         ready_for_analyze = set()
@@ -428,12 +433,17 @@ class RbcParser:
         YandexDiskWork().upload_file('./src/date_rbc.pkl', 'HSE_project/date_rbc.pkl', True)
 
         if len(ready_for_analyze) == 0:
-            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found any mentions.')
+            self.bot_info.get_bot().send_message(self.bot_info.get_id(), 'We have not found any mentions on RBC.')
             return
 
+        threads_arr = list()
         for pair in ready_for_analyze:
-            sleep(10)
-            TextProcess(self.bot_info).articles_processing(pair)
+            th = Thread(target=TextProcess(self.bot_info).articles_processing, args=(pair,))
+            threads_arr.append(th)
+            th.start()
+
+        for th in threads_arr:
+            th.join()
         return
 
 
