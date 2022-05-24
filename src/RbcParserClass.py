@@ -78,7 +78,7 @@ class RbcParser:
                 continue
 
             soup = BeautifulSoup(page.text, "html.parser")
-            all_news = soup.findAll('span', class_='article__header__date')
+            all_news = soup.findAll('time', class_='article__header__date')
             date = str(all_news).split()[2].strip("content=\"")
             date_string = str(dateparser.parse(date))
             date_time_obj = datetime.datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S+03:00')
