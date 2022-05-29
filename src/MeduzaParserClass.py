@@ -90,8 +90,8 @@ class MeduzaParser:
                 if date_time_obj > last_date:
                     new_links.add((date_time_obj, link))
 
-        self.bot_info.get_bot().send_message(self.bot_info.get_id(),
-                                             'Links gathered')
+        # self.bot_info.get_bot().send_message(self.bot_info.get_id(),
+        #                                      'Links gathered')
         # gathered all the new_links to search for company names
 
         if len(new_links) == 0:
@@ -159,9 +159,8 @@ class MeduzaParser:
         if len(links_for_analyze) == 0:
             self.bot_info.get_bot().send_message(self.bot_info.get_id(),
                                                  'We have not found any mentions on Meduza.')
+            return
 
-        self.bot_info.get_bot().send_message(self.bot_info.get_id(),
-                                             'Ready to analize')
         with open('./src/date_meduza.pkl', 'wb') as file:
             pickle.dump(last_date_time_obj, file)
         file.close()

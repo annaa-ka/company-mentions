@@ -1,3 +1,4 @@
 .env
 .idea
 company
+**/__pycache__/
